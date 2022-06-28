@@ -1,3 +1,4 @@
+from asyncore import write
 from math import floor, ceil
 import os
 
@@ -7,14 +8,16 @@ from urllib.error import URLError
 
 from bs4 import BeautifulSoup, PageElement
 
+from mail import writeMail, sendMail
+
 # imdb_url = 'https://www.imdb.com/search/title/?num_votes=0,&sort=num_votes,desc'
         # https://www.imdb.com/search/title/?num_votes=0,&sort=num_votes,desc&start=51&ref_=adv_nxt
         # https://www.imdb.com/search/title/?title_type=feature&num_votes=0,&sort=num_votes,desc&count=250
 
 movies = [] # list of movies according to the value defined in NUM_MOVIES
 
-NUM_MOVIES  = 50                  # number of movies to search
-COUNT       = 50                   # number of movies per page
+NUM_MOVIES  = 2000                  # number of movies to search
+COUNT       = 250                   # number of movies per page
 NUM_PAGES   = NUM_MOVIES / COUNT    # number pages to search
 
 imdb_search_url = 'https://www.imdb.com/search/title/?' # complete url of advanced search
@@ -37,6 +40,7 @@ classes = {
     'image': 'lister-item-image'            # .lister-list > .lister-item > .lister-item-image > a > img
 }
 
+# for each page, mount the imdb url, open it and get the fields from the movie list
 for i in range(0, ceil(NUM_PAGES)):
     params['start'] = str(COUNT * i)
 
@@ -84,11 +88,13 @@ for i in range(0, ceil(NUM_PAGES)):
         else:
             break
 
+# show message to decide if should order movies
 shouldOrder = ''
 while shouldOrder != '1' and shouldOrder != '2':
     shouldOrder = input("Deseja classificar os filmes?\n1 - Sim | 2 - Não\n")
 
 if shouldOrder == '1':
+    # mount messages for order options 
     orderOptions = [(1,"Título",'title'),
                     (2,"Ano",'year'),
                     (3,"Metascore",'metascore'),
@@ -101,26 +107,34 @@ if shouldOrder == '1':
         orderMsg += str(opt[0]) + ' - ' + opt[1] + ' | '
     orderMsg = orderMsg[:-2]
     
+    # show message with order options
     while int(orderBy) not in range(orderOptions[0][0],orderOptions[-1][0]+1):
         orderBy = input(orderMsg+'\n')
         if not orderBy.isdigit():
             orderBy = 0
 
+    # shiw message with sort options
     sortBy = 0
     while sortBy not in ['1','2']:
         sortBy = input('Deseja ordenar em:\n1 - ascendente | 2 - decrescente\n')
 
 
+    # order movies by the field and sort selected
     orderBy = [x[2] for x in orderOptions if x[0] == int(orderBy)][0]
     movies.sort(key=lambda x: x[orderBy], reverse=int(sortBy) - 1)
 
+# open file
 file = open("filmes.txt", 'w+', encoding='UTF-8')
 file.write('#    | imdb | metascore | ano  | votos | arrecadação | título | imagem\n')
 
+# create dir to save cover images
+if not os.path.exists("fotos"):
+    os.makedirs("fotos")
+
+# download images and write file
 count = 0
 for movie in movies:
-    # urlretrieve(movie['image'], 'fotos/'+movie['id']+'.png')
-    urlretrieve(movie['image'], movie['id']+'.png')
+    urlretrieve(movie['image'], 'fotos/'+movie['id']+'.png')
     movie['image'] = 'fotos/'+movie['id']+'.png'
 
     count += 1
@@ -136,3 +150,33 @@ for movie in movies:
     file.write('\n')
 
 file.close()
+
+# show message to choose to receive an email with the movies
+send_mail = None
+toMail = ''
+while send_mail not in [True, False]:
+    inpt = input("Deseja receber um email com os 20 primeiros filmes?\n 1 - Sim | 2 - Não\n")
+    if inpt in ['1', '2']:
+        send_mail = True if inpt == '1' else False
+        toMail = input('Digite seu email\n')
+
+# if true, send mail
+if(send_mail):
+    body = """\
+        <table>
+            <tr>
+                <th>Título</th><th>Ano</th><th>Metascore</th><th>User score</th><th># votos</th>
+            </tr>
+        """
+    count = 1
+    for movie in movies:
+        if count <= 20:
+            body += "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td></tr>".format(movie['title'], movie['year'], movie['metascore'], movie['user_score'], movie['num_votes'])
+            count += 1
+        else:
+            break
+
+    body += "</table>"
+
+    mail = writeMail(toMail, 'Filmes', body)
+    sendMail(mail, 'outlook')
