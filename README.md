@@ -19,3 +19,7 @@ Depois de ordenar os filmes, salva os 20 primeiros no arquivo 'Filmes.txt' e faz
 Após gerar os arquivos, pede para o usuário se quer receber um email com o resultado. Caso sim, pede o e-mail que deve receber.
 
 Para enviar o email, chama as funções do arquivo 'mail.py'. Lá é necessário colocar os valores das constantes 'SENDER_MAIL' e 'SENDER_PASS'. a função 'sendMail' recebe o email montado e o provedor do de envio de email, que pode ser 'outlook' e 'gmail'
+
+# Requisitos
+- pip install bs4
+- pip install lxml
