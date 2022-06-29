@@ -134,20 +134,22 @@ if not os.path.exists("fotos"):
 # download images and write file
 count = 0
 for movie in movies:
-    urlretrieve(movie['image'], 'fotos/'+movie['id']+'.png')
-    movie['image'] = 'fotos/'+movie['id']+'.png'
-
     count += 1
+    if count <= 20:
+        urlretrieve(movie['image'], 'fotos/'+movie['id']+'.png')
+        movie['image'] = 'fotos/'+movie['id']+'.png'
 
-    file.write(str(count) + ' | ')
-    file.write(movie['user_score'] + ' | ')
-    file.write(movie['metascore'] + ' | ')
-    file.write(movie['year'] + ' | ')
-    file.write(movie['num_votes'] + ' | ')
-    file.write(movie['revenue'] + ' | ')
-    file.write(movie['title'] + ' | ')
-    file.write(movie['image'] + ' | ')
-    file.write('\n')
+        file.write(str(count) + ' | ')
+        file.write(movie['user_score'] + ' | ')
+        file.write(movie['metascore'] + ' | ')
+        file.write(movie['year'] + ' | ')
+        file.write(movie['num_votes'] + ' | ')
+        file.write(movie['revenue'] + ' | ')
+        file.write(movie['title'] + ' | ')
+        file.write(movie['image'] + ' | ')
+        file.write('\n')
+    else:
+        break
 
 file.close()
 
