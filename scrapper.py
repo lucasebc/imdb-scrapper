@@ -160,10 +160,10 @@ while send_mail not in [True, False]:
     inpt = input("Deseja receber um email com os 20 primeiros filmes?\n 1 - Sim | 2 - Não\n")
     if inpt in ['1', '2']:
         send_mail = True if inpt == '1' else False
-        toMail = input('Digite seu email\n')
 
 # if true, send mail
 if(send_mail):
+    toMail = input('Digite seu email\n')
     body = """\
         <table>
             <tr>
